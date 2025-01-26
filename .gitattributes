@@ -1,0 +1,10 @@
+# Force LF for Unix/Linux/macOS shell scripts
+/mvnw text eol=lf
+*.sh text eol=lf
+
+# Force CRLF for Windows batch files
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Automatically normalize line endings for all other text files
+* text=auto
