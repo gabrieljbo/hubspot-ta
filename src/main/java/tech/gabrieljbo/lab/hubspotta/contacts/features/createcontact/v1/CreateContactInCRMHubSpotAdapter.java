@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -16,6 +17,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class CreateContactInCRMHubSpotAdapter implements CreateContactInCRM {
 
@@ -32,6 +34,8 @@ public class CreateContactInCRMHubSpotAdapter implements CreateContactInCRM {
 
     @Override
     public CreateContactResponse createContact(CreateContactCommand createContactCommand) {
+        log.info("Creating contact with the command -> {}", createContactCommand);
+
         try {
             Map<String, Object> requestContactProperties = new HashMap<>();
             requestContactProperties.put("firstname", createContactCommand.getFirstName());
@@ -44,6 +48,8 @@ public class CreateContactInCRMHubSpotAdapter implements CreateContactInCRM {
             objectMapper.registerModule(new JavaTimeModule());
             JsonNode hubspotRequest = objectMapper.valueToTree(hubspotRequestBody);
             JsonNode hubspotResponse = restClient.postForObject(hubspotContactsEndpoint, hubspotRequest, JsonNode.class);
+
+            log.info("Response from HubSpot -> {}", hubspotResponse);
 
             // Response from HubSpot was NOT successful
             boolean responseWasNotSuccessful = hubspotResponse.has("error");

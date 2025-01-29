@@ -1,15 +1,13 @@
 package tech.gabrieljbo.lab.hubspotta.contacts.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.ZonedDateTime;
 
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
+@ToString
 @Builder
 public class Contact {
 

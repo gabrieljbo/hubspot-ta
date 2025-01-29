@@ -20,6 +20,8 @@ public class ExceptionHandlerAdvice {
 
     @ExceptionHandler({ ConstraintViolationException.class })
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
+        log.error("Data validation error", ex);
+
         List<ErrorMessage> errorMessages = new ArrayList<>(0);
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
             ErrorMessage errorMessage = ErrorMessage.builder()
@@ -38,6 +40,8 @@ public class ExceptionHandlerAdvice {
 
     @ExceptionHandler({ SystemException.class })
     public ResponseEntity<ErrorResponse> handleSystemException(SystemException ex, WebRequest request) {
+        log.error("System error", ex);
+
         ErrorMessage errorMessage = ErrorMessage.builder()
                 .subject("CONFLICT")
                 .message(ex.getMessage())

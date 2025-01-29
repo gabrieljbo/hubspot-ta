@@ -7,6 +7,7 @@ import lombok.*;
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
+@ToString
 @Builder
 public class RetrieveContactsQuery implements Command<RetrieveContactsResponse> {
 

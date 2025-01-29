@@ -1,5 +1,6 @@
 package tech.gabrieljbo.lab.hubspotta.contacts.features.retrievecontacts.v1;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -11,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.ArrayList;
 import java.util.Optional;
 
+@Slf4j
 @Component
 public class RetrieveContactsFromCRMHubSpotAdapter implements RetrieveContactsFromCRM {
 
@@ -27,6 +29,8 @@ public class RetrieveContactsFromCRMHubSpotAdapter implements RetrieveContactsFr
 
     @Override
     public RetrieveContactsResponse retrieveContacts(RetrieveContactsQuery retrieveContactsQuery) {
+        log.info("Retrieving contacts with the query -> {}", retrieveContactsQuery);
+
         Integer limit = retrieveContactsQuery.getLimit();
         Integer offset = retrieveContactsQuery.getOffset();
         String properties = retrieveContactsQuery.getProperties();
@@ -42,6 +46,8 @@ public class RetrieveContactsFromCRMHubSpotAdapter implements RetrieveContactsFr
                 null,
                 new ParameterizedTypeReference<RetrieveContactsHubSpotResponse>() {}
         );
+        log.info("Response from HubSpot -> {}", hubspotResponse);
+
         var hubspotResponseResults = Optional.of(hubspotResponse)
                 .map(ResponseEntity::getBody)
                 .map(RetrieveContactsHubSpotResponse::getResults)
