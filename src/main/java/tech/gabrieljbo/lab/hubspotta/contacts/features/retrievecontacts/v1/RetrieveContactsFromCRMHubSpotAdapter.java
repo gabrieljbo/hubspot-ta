@@ -1,6 +1,5 @@
 package tech.gabrieljbo.lab.hubspotta.contacts.features.retrievecontacts.v1;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -9,13 +8,22 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.Optional;
+
 @Component
-@RequiredArgsConstructor
 public class RetrieveContactsFromCRMHubSpotAdapter implements RetrieveContactsFromCRM {
 
     @Value( "${hubspot.contacts.endpoint}" )
-    private String hubspotContactsEndpoint;
+    private final String hubspotContactsEndpoint;
     private final RestTemplate restClient;
+
+    public RetrieveContactsFromCRMHubSpotAdapter(
+                @Value("${hubspot.contacts.endpoint}") String hubspotContactsEndpoint,
+                RestTemplate restClient) {
+            this.hubspotContactsEndpoint = hubspotContactsEndpoint;
+            this.restClient = restClient;
+    }
 
     @Override
     public RetrieveContactsResponse retrieveContacts(RetrieveContactsQuery retrieveContactsQuery) {
@@ -25,7 +33,7 @@ public class RetrieveContactsFromCRMHubSpotAdapter implements RetrieveContactsFr
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(hubspotContactsEndpoint);
         if (limit != null) uriBuilder.queryParam("limit", limit);
-        if (offset != null) uriBuilder.queryParam("offset", offset);
+        if (offset != null) uriBuilder.queryParam("after", offset);
         if (properties != null) uriBuilder.queryParam("properties", properties);
 
         ResponseEntity<RetrieveContactsHubSpotResponse> hubspotResponse = restClient.exchange(
@@ -34,7 +42,10 @@ public class RetrieveContactsFromCRMHubSpotAdapter implements RetrieveContactsFr
                 null,
                 new ParameterizedTypeReference<RetrieveContactsHubSpotResponse>() {}
         );
-        var hubspotResponseResults = hubspotResponse.getBody().getResults();
+        var hubspotResponseResults = Optional.of(hubspotResponse)
+                .map(ResponseEntity::getBody)
+                .map(RetrieveContactsHubSpotResponse::getResults)
+                .orElse(new ArrayList<>(0));
 
         var response = RetrieveContactsResponse.builder().contacts(hubspotResponseResults).build();
         return response;

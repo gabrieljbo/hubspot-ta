@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -18,12 +17,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 public class CreateContactInCRMHubSpotAdapter implements CreateContactInCRM {
 
     @Value( "${hubspot.contacts.endpoint}" )
-    private String hubspotContactsEndpoint;
+    private final String hubspotContactsEndpoint;
     private final RestTemplate restClient;
+
+    public CreateContactInCRMHubSpotAdapter(
+            @Value("${hubspot.contacts.endpoint}") String hubspotContactsEndpoint,
+            RestTemplate restClient) {
+        this.hubspotContactsEndpoint = hubspotContactsEndpoint;
+        this.restClient = restClient;
+    }
 
     @Override
     public CreateContactResponse createContact(CreateContactCommand createContactCommand) {
@@ -41,15 +46,15 @@ public class CreateContactInCRMHubSpotAdapter implements CreateContactInCRM {
             JsonNode hubspotResponse = restClient.postForObject(hubspotContactsEndpoint, hubspotRequest, JsonNode.class);
 
             // Response from HubSpot was NOT successful
-            boolean responseWasSuccessful = !hubspotResponse.has("error");
-            if (!responseWasSuccessful) {
+            boolean responseWasNotSuccessful = hubspotResponse.has("error");
+            if (responseWasNotSuccessful) {
                 String errorMessage = hubspotResponse.path("error").path("body").path("message").asText();
                 throw new SystemException(errorMessage);
             }
 
             // Response from HubSpot was successful
             String contactId = hubspotResponse.path("id").asText();
-            ZonedDateTime createdAt = objectMapper.treeToValue(hubspotRequest.get("createdAt"), ZonedDateTime.class);
+            ZonedDateTime createdAt = objectMapper.treeToValue(hubspotResponse.get("createdAt"), ZonedDateTime.class);
             ContactProperties contactProperties = ContactProperties.builder()
                     .firstName(createContactCommand.getFirstName())
                     .lastName(createContactCommand.getLastName())
